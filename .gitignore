@@ -1,0 +1,8 @@
+bin/
+*.pdf
+*.md.out
+.env
+.envrc
+.DS_Store
+coverage.out
+dogfood/
