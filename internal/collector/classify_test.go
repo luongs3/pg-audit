@@ -231,3 +231,9 @@ func TestClassifyConnectionUsage(t *testing.T) {
 		})
 	}
 }
+
+func TestClassifyMissingPrimaryKey(t *testing.T) {
+	if got := classifyMissingPrimaryKey(); got != Warning {
+		t.Errorf("classifyMissingPrimaryKey() = %q, want %q", got, Warning)
+	}
+}

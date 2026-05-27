@@ -151,3 +151,10 @@ func classifyConnectionUsage(usedPct float64) Severity {
 		return Info
 	}
 }
+
+// classifyMissingPrimaryKey grades a table that lacks a primary key. It's a
+// real schema-health issue (logical replication, row addressing, dedupe) but
+// not an availability risk, so it's a Warning rather than Critical.
+func classifyMissingPrimaryKey() Severity {
+	return Warning
+}

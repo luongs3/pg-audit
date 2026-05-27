@@ -95,5 +95,6 @@ func allChecks() []check {
 		{name: "Replication lag", run: replicationLag},
 		{name: "Largest relations", run: largestRelations},
 		{name: "Connection usage", run: connections},
+		{name: "Tables without a primary key", run: missingPrimaryKey},
 	}
 }
