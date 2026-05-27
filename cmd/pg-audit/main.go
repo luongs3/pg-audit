@@ -18,10 +18,10 @@ func main() {
 		Short: "Read-only Postgres health check — outputs a markdown report.",
 	}
 
-	var dsn, out string
+	var dsn, out, format string
 	runCmd := &cobra.Command{
 		Use:   "run",
-		Short: "Run all checks against a database and write a markdown report.",
+		Short: "Run all checks against a database and write a report.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if dsn == "" {
 				dsn = os.Getenv("PGAUDIT_DSN")
@@ -29,21 +29,36 @@ func main() {
 			if dsn == "" {
 				return fmt.Errorf("--dsn or $PGAUDIT_DSN required")
 			}
+
+			var render func(*collector.Findings) (string, error)
+			switch format {
+			case "markdown", "md", "":
+				render = func(f *collector.Findings) (string, error) { return report.Markdown(f), nil }
+			case "json":
+				render = report.JSON
+			default:
+				return fmt.Errorf("unknown --format %q (want: markdown, json)", format)
+			}
+
 			ctx := context.Background()
 			findings, err := collector.RunAll(ctx, dsn)
 			if err != nil {
 				return err
 			}
-			md := report.Markdown(findings)
+			doc, err := render(findings)
+			if err != nil {
+				return err
+			}
 			if out == "" {
-				fmt.Print(md)
+				fmt.Print(doc)
 				return nil
 			}
-			return os.WriteFile(out, []byte(md), 0644)
+			return os.WriteFile(out, []byte(doc), 0644)
 		},
 	}
 	runCmd.Flags().StringVar(&dsn, "dsn", "", "Postgres connection string (or set $PGAUDIT_DSN)")
 	runCmd.Flags().StringVarP(&out, "out", "o", "", "output file (default: stdout)")
+	runCmd.Flags().StringVarP(&format, "format", "f", "markdown", "output format: markdown or json")
 
 	versionCmd := &cobra.Command{
 		Use:   "version",

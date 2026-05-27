@@ -23,6 +23,25 @@ You get a markdown file covering:
 Read-only. Never writes. Never reads row data — only catalog views and
 statistics.
 
+## Output formats
+
+Markdown (default) for humans, JSON for pipelines:
+
+```bash
+pg-audit run --dsn "$PGAUDIT_DSN"                 # markdown to stdout
+pg-audit run --dsn "$PGAUDIT_DSN" --format json   # machine-readable JSON
+pg-audit run --dsn "$PGAUDIT_DSN" -f json -o report.json
+```
+
+The JSON shape is stable — top-level `database`, `postgres_version`,
+`summary` (`critical`/`warning`/`info`/`sections` counts), and a `sections`
+array of findings — so you can pipe it into `jq`, store it, or diff it across
+runs:
+
+```bash
+pg-audit run --dsn "$PGAUDIT_DSN" -f json | jq '.summary'
+```
+
 ## Why this exists
 
 I'm a senior backend engineer. I read these statistics for a living. I got
