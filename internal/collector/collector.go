@@ -94,5 +94,6 @@ func allChecks() []check {
 		{name: "Cache hit ratio", run: cacheHit},
 		{name: "Replication lag", run: replicationLag},
 		{name: "Largest relations", run: largestRelations},
+		{name: "Connection usage", run: connections},
 	}
 }

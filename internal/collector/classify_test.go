@@ -207,3 +207,27 @@ func TestClassifyIdleInTxn(t *testing.T) {
 		})
 	}
 }
+
+func TestClassifyConnectionUsage(t *testing.T) {
+	tests := []struct {
+		name    string
+		usedPct float64
+		want    Severity
+	}{
+		{"low", 10, Info},
+		{"moderate", 50, Info},
+		{"at warning boundary", 80, Info}, // boundary is > 80, so 80 itself is Info
+		{"just above warning", 80.01, Warning},
+		{"mid warning", 85, Warning},
+		{"at critical boundary", 90, Warning}, // boundary is > 90, so 90 itself is Warning
+		{"just above critical", 90.01, Critical},
+		{"saturated", 100, Critical},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := classifyConnectionUsage(tt.usedPct); got != tt.want {
+				t.Errorf("classifyConnectionUsage(%v) = %q, want %q", tt.usedPct, got, tt.want)
+			}
+		})
+	}
+}

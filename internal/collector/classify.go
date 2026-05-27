@@ -135,3 +135,19 @@ func classifyIdleInTxn(ageSec int) Severity {
 	}
 	return Warning
 }
+
+// classifyConnectionUsage grades how close the server is to max_connections.
+// Running out of connection slots causes hard "too many clients" failures, so
+// the thresholds are deliberately conservative: most setups should sit well
+// below 80% steady-state, and crossing 90% means a saturation incident is one
+// traffic spike away.
+func classifyConnectionUsage(usedPct float64) Severity {
+	switch {
+	case usedPct > 90:
+		return Critical
+	case usedPct > 80:
+		return Warning
+	default:
+		return Info
+	}
+}
