@@ -17,15 +17,3 @@ func collectMeta(ctx context.Context, pool poolIface, f *Findings) error {
 	}
 	return nil
 }
-
-// stubCheck returns a placeholder check that records a TODO finding.
-// Replace each call site with the real implementation as it's built.
-func stubCheck(id string) func(ctx context.Context, pool poolIface) ([]Finding, error) {
-	return func(ctx context.Context, pool poolIface) ([]Finding, error) {
-		return []Finding{{
-			Severity: Info,
-			Title:    "Not implemented yet",
-			Detail:   "Check `" + id + "` is scaffolded but not implemented in v0.1.",
-		}}, nil
-	}
-}

@@ -73,12 +73,46 @@ Connect as a user with `pg_monitor` role (recommended) or any user with
 - Index recommendations beyond "this index is unused" (the actually-hard
   recommendation is the human-judgement part — that's the paid layer)
 
+## Example output
+
+Dogfooded against a production-scale **1.45 GB** OLTP database (table names
+redacted). One run, one markdown file:
+
+```markdown
+# Postgres audit: `app`
+_Postgres version: 16.x. 1 critical finding, 4 warnings, 8 sections scanned._
+
+## Cache hit ratio
+### [CRITICAL] Low cache hit ratio (80.49%)
+5.76M heap hits / 1.40M disk reads. OLTP wants >99%. shared_buffers is
+likely undersized or the cache is cold after restart.
+
+## Bloated tables
+### [WARNING] Table is 40.8% bloat
+34 MB wasted on an 82 MB table. Candidate for VACUUM (VERBOSE, ANALYZE)
+or pg_repack.
+
+## Unused indexes
+### [WARNING] 8 unused indexes, ~20 MB reclaimable
+0 scans since stats reset, each > 1 MB. Safe DROP INDEX CONCURRENTLY
+statements included for each. Every unused index is still maintained on
+every write — dropping them cuts write amplification.
+
+## Missing-index candidates
+### [WARNING] Hot table doing 985K disk reads at 41.9% cache hit
+High seq-read path on a small lookup table — a single correct index (or
+fitting it into shared_buffers) turns ~1M disk reads into RAM hits.
+```
+
+Across four real databases in that run it surfaced 11 unused indexes, one
+40%-bloated table, and two cache-starved hot paths — and caught **two SQL
+bugs in the tool itself** (an ambiguous `indexrelid` join and a Postgres-14+
+`round(double precision, int)` cast), both fixed before tagging.
+
 ## Status
 
-v0.x, dogfooded on a production-scale 1.45 GB database that surfaced
-8 unused indexes, a 40% bloated table, and an 80% cache hit ratio.
-Two SQL bugs in the tool itself were caught and fixed by that same
-dogfood run. Issues and PRs welcome.
+v0.1.x — read-only, eight checks implemented, dogfooded on production-scale
+data. Issues and PRs welcome.
 
 ## License
 

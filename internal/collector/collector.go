@@ -67,8 +67,8 @@ type check struct {
 	run  func(ctx context.Context, pool poolIface) ([]Finding, error)
 }
 
-// allChecks is the ordered list of audit sections.
-// TODO: implement each in its own file (slow_queries.go, unused_indexes.go, ...)
+// allChecks is the ordered list of audit sections. Each is implemented in its
+// own file in this package (slow_queries.go, unused_indexes.go, ...).
 func allChecks() []check {
 	return []check{
 		{name: "Slow queries (pg_stat_statements)", run: slowQueries},
