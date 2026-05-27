@@ -35,12 +35,7 @@ func replicationLag(ctx context.Context, pool poolIface) ([]Finding, error) {
 		if err := rows.Scan(&addr, &appName, &state, &sync, &writeLag, &flushLag, &replayLag, &lagBytes); err != nil {
 			return findings, nil
 		}
-		sev := Info
-		if replayLag > 60 || lagBytes > 100*1024*1024 {
-			sev = Critical
-		} else if replayLag > 10 {
-			sev = Warning
-		}
+		sev := classifyReplicationLag(replayLag, lagBytes)
 		findings = append(findings, Finding{
 			Severity: sev,
 			Title:    fmt.Sprintf("Replica `%s` (%s) — %.1fs replay lag, %d KB behind", addr, appName, replayLag, lagBytes/1024),

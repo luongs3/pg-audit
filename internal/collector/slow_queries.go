@@ -49,12 +49,7 @@ func slowQueries(ctx context.Context, pool poolIface) ([]Finding, error) {
 		if err := rows.Scan(&q, &calls, &totalMs, &meanMs, &rowsRet); err != nil {
 			return nil, err
 		}
-		sev := Info
-		if meanMs > 500 {
-			sev = Critical
-		} else if meanMs > 100 {
-			sev = Warning
-		}
+		sev := classifySlowQuery(meanMs)
 		findings = append(findings, Finding{
 			Severity: sev,
 			Title:    fmt.Sprintf("#%d: %.0f ms mean, %d calls, %.0f ms total", rank, meanMs, calls, totalMs),

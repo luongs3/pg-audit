@@ -109,6 +109,27 @@ Across four real databases in that run it surfaced 11 unused indexes, one
 bugs in the tool itself** (an ambiguous `indexrelid` join and a Postgres-14+
 `round(double precision, int)` cast), both fixed before tagging.
 
+## Testing
+
+The hard part of a tool like this isn't the SQL — it's the *judgement* baked
+into the thresholds: at what mean time does a query become a warning, at what
+bloat ratio is a table worth a human's attention. Get a `>` vs `>=` wrong on
+one of those boundaries and the report silently lies.
+
+So every severity decision is pulled out of the SQL-and-row-scanning code
+into a pure function in [`internal/collector/classify.go`](internal/collector/classify.go),
+and each one is covered by a table-driven test that brackets every threshold
+with a just-below / exactly-on / just-above triple. That's where the bugs
+live, so that's where the tests are pointed — the classifiers sit at 100%
+coverage. The detectors call these functions, so the tests exercise the real
+report path, not a parallel copy.
+
+```bash
+go test ./... -race -cover
+```
+
+CI runs build + vet + race tests on every push.
+
 ## Status
 
 v0.1.x — read-only, eight checks implemented, dogfooded on production-scale

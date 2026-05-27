@@ -79,12 +79,8 @@ LIMIT 20
 		if err := rows.Scan(&schema, &table, &sizeP, &bloatSizeP, &bloatPct, &bloatBytes); err != nil {
 			return nil, err
 		}
-		sev := Info
-		if bloatPct >= 50 && bloatBytes > 100*1024*1024 {
-			sev = Critical
-		} else if bloatPct >= 25 {
-			sev = Warning
-		} else {
+		sev, report := classifyBloat(bloatPct, bloatBytes)
+		if !report {
 			continue
 		}
 		findings = append(findings, Finding{

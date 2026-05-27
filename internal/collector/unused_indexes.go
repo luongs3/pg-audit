@@ -40,10 +40,7 @@ func unusedIndexes(ctx context.Context, pool poolIface) ([]Finding, error) {
 			return nil, err
 		}
 		totalBytes += sizeBytes
-		sev := Info
-		if sizeBytes > 100*1024*1024 {
-			sev = Warning
-		}
+		sev := classifyUnusedIndex(sizeBytes)
 		findings = append(findings, Finding{
 			Severity: sev,
 			Title:    fmt.Sprintf("`%s.%s.%s` — %s, 0 scans", schema, table, idx, sizePretty),
@@ -55,9 +52,9 @@ func unusedIndexes(ctx context.Context, pool poolIface) ([]Finding, error) {
 		return []Finding{{Severity: Info, Title: "No unused indexes >1 MB", Detail: "Every non-unique, non-primary index has been scanned at least once."}}, nil
 	}
 	// Bump severity of the headline if total reclaimable space is large.
-	if totalBytes > 1024*1024*1024 {
+	if hsev, show := unusedIndexHeadline(totalBytes); show {
 		findings = append([]Finding{{
-			Severity: Critical,
+			Severity: hsev,
 			Title:    fmt.Sprintf("~%d MB total reclaimable", totalBytes/1024/1024),
 			Detail:   "Total disk reclaimable by dropping the unused indexes below. Bigger upside: faster writes, faster autovacuum.",
 		}}, findings...)

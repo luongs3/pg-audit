@@ -27,13 +27,7 @@ func cacheHit(ctx context.Context, pool poolIface) ([]Finding, error) {
 		return []Finding{{Severity: Info, Title: "No cache stats yet", Detail: "Database has not served any reads since last stats reset."}}, nil
 	}
 	ratio := float64(hit) / float64(total) * 100
-	sev := Info
-	switch {
-	case ratio < 90:
-		sev = Critical
-	case ratio < 99:
-		sev = Warning
-	}
+	sev := classifyDBCacheHit(ratio)
 	findings = append(findings, Finding{
 		Severity: sev,
 		Title:    fmt.Sprintf("Database cache hit ratio: %.2f%%", ratio),
@@ -66,10 +60,7 @@ func cacheHit(ctx context.Context, pool poolIface) ([]Finding, error) {
 		if err := rows.Scan(&schema, &table, &h, &r, &pct); err != nil {
 			return findings, nil
 		}
-		sev := Info
-		if pct < 95 {
-			sev = Warning
-		}
+		sev := classifyTableCacheHit(pct)
 		findings = append(findings, Finding{
 			Severity: sev,
 			Title:    fmt.Sprintf("`%s.%s` — %.1f%% hit (%d disk reads)", schema, table, pct, r),

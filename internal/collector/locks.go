@@ -70,10 +70,7 @@ func locks(ctx context.Context, pool poolIface) ([]Finding, error) {
 		if err := rows2.Scan(&pid, &user, &state, &ageS, &q); err != nil {
 			return findings, nil
 		}
-		sev := Warning
-		if ageS > 600 {
-			sev = Critical
-		}
+		sev := classifyIdleInTxn(ageS)
 		findings = append(findings, Finding{
 			Severity: sev,
 			Title:    fmt.Sprintf("pid %d idle in transaction for %ds (user %s)", pid, ageS, user),

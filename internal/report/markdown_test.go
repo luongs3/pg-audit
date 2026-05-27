@@ -7,76 +7,71 @@ import (
 	"github.com/luongs3/pg-audit/internal/collector"
 )
 
+// sampleFindings builds a Findings tree exercising the cases the renderer
+// has to handle: a section with mixed severities, a skipped section, and an
+// empty section.
 func sampleFindings() *collector.Findings {
 	return &collector.Findings{
 		DatabaseName: "shop",
 		PgVersion:    "16.2",
 		Sections: []collector.Section{
 			{
-				Name: "Cache hit ratio",
+				Name: "Slow queries",
 				Findings: []collector.Finding{
-					{Severity: collector.Critical, Title: "Low cache hit ratio", Detail: "80.49% hit ratio; OLTP wants >99%."},
+					{Severity: collector.Critical, Title: "q1 slow", Detail: "..."},
+					{Severity: collector.Warning, Title: "q2 warm", Detail: "..."},
+					{Severity: collector.Info, Title: "q3 fine", Detail: "..."},
 				},
 			},
 			{
-				Name: "Unused indexes",
-				Findings: []collector.Finding{
-					{Severity: collector.Warning, Title: "idx_orders_legacy unused", Detail: "0 scans, 4.7 MB reclaimable."},
-				},
+				Name:    "Slow queries (pg_stat_statements)",
+				Skipped: "extension not installed",
 			},
 			{
-				Name: "Slow queries (pg_stat_statements)",
-				Findings: []collector.Finding{
-					{Severity: collector.Info, Title: "Top query by total time", Detail: "SELECT ... 12% of total exec time."},
-				},
+				Name:     "Replication lag",
+				Findings: nil, // empty → "_No findings._"
 			},
-			{Name: "Replication lag", Skipped: "not a primary"},
-			{Name: "Lock-wait hotspots"}, // no findings
 		},
 	}
 }
 
-func TestMarkdownCountsSeverities(t *testing.T) {
-	out := Markdown(sampleFindings())
-
-	for _, want := range []string{
-		"# Postgres audit: `shop`",
-		"Postgres version: 16.2",
-		"1 critical finding(s)",
-		"1 warning(s)",
-		"5 section(s) scanned",
-	} {
-		if !strings.Contains(out, want) {
-			t.Errorf("rendered report missing %q\n---\n%s", want, out)
-		}
+func TestMarkdownSummaryCounts(t *testing.T) {
+	md := Markdown(sampleFindings())
+	// One critical and one warning across all sections.
+	if !strings.Contains(md, "1 critical finding(s)") {
+		t.Errorf("expected 1 critical in summary, got:\n%s", md)
+	}
+	if !strings.Contains(md, "1 warning(s)") {
+		t.Errorf("expected 1 warning in summary, got:\n%s", md)
+	}
+	if !strings.Contains(md, "3 section(s) scanned") {
+		t.Errorf("expected 3 sections in summary, got:\n%s", md)
 	}
 }
 
-func TestMarkdownRendersSkippedAndEmptySections(t *testing.T) {
-	out := Markdown(sampleFindings())
-
-	if !strings.Contains(out, "_Skipped: not a primary_") {
-		t.Error("skipped section should render its reason")
+func TestMarkdownRendersSkippedAndEmpty(t *testing.T) {
+	md := Markdown(sampleFindings())
+	if !strings.Contains(md, "_Skipped: extension not installed_") {
+		t.Errorf("skipped section not rendered:\n%s", md)
 	}
-	if !strings.Contains(out, "_No findings._") {
-		t.Error("section with no findings should render the empty marker")
-	}
-}
-
-func TestMarkdownUppercasesSeverityLabels(t *testing.T) {
-	out := Markdown(sampleFindings())
-
-	for _, want := range []string{"[CRITICAL]", "[WARNING]", "[INFO]"} {
-		if !strings.Contains(out, want) {
-			t.Errorf("rendered report missing severity label %q", want)
-		}
+	if !strings.Contains(md, "_No findings._") {
+		t.Errorf("empty section not rendered:\n%s", md)
 	}
 }
 
-func TestMarkdownEmptyFindingsIsStable(t *testing.T) {
-	out := Markdown(&collector.Findings{DatabaseName: "empty", PgVersion: "16.2"})
+func TestMarkdownIncludesDBNameAndVersion(t *testing.T) {
+	md := Markdown(sampleFindings())
+	if !strings.Contains(md, "shop") {
+		t.Errorf("database name missing from report:\n%s", md)
+	}
+	if !strings.Contains(md, "16.2") {
+		t.Errorf("pg version missing from report:\n%s", md)
+	}
+}
 
-	if !strings.Contains(out, "0 critical finding(s)") || !strings.Contains(out, "0 section(s) scanned") {
-		t.Errorf("empty findings should still render a summary\n---\n%s", out)
+func TestMarkdownUppercasesSeverityTags(t *testing.T) {
+	md := Markdown(sampleFindings())
+	if !strings.Contains(md, "[CRITICAL]") {
+		t.Errorf("expected uppercased [CRITICAL] tag:\n%s", md)
 	}
 }

@@ -38,10 +38,7 @@ func missingIndexes(ctx context.Context, pool poolIface) ([]Finding, error) {
 		if err := rows.Scan(&schema, &table, &seqScan, &idxScan, &seqTupRead, &nLive, &sizeP, &sizeB); err != nil {
 			return nil, err
 		}
-		sev := Warning
-		if seqScan > 100000 && sizeB > 500*1024*1024 {
-			sev = Critical
-		}
+		sev := classifyMissingIndex(seqScan, sizeB)
 		ratio := "∞"
 		if idxScan > 0 {
 			ratio = fmt.Sprintf("%.1fx", float64(seqScan)/float64(idxScan))
