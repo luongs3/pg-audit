@@ -19,6 +19,7 @@ You get a markdown file covering:
 - Missing-index candidates (high `seq_scan` to `idx_scan` ratio on large tables)
 - Replication lag (if applicable)
 - Cache hit ratio per database
+- Largest relations by total on-disk size (table + indexes + TOAST)
 
 Read-only. Never writes. Never reads row data — only catalog views and
 statistics.
