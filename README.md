@@ -42,6 +42,18 @@ runs:
 pg-audit run --dsn "$PGAUDIT_DSN" -f json | jq '.summary'
 ```
 
+### CI gating
+
+Use `--fail-on` to make `pg-audit` exit non-zero (code 2) when findings
+reach a severity threshold — handy as a CI guard against regressions:
+
+```bash
+pg-audit run --dsn "$PGAUDIT_DSN" --fail-on critical   # fail the build on any CRITICAL
+pg-audit run --dsn "$PGAUDIT_DSN" --fail-on warning    # stricter: warning or above
+```
+
+The report still prints normally; only the exit code changes.
+
 ## Why this exists
 
 I'm a senior backend engineer. I read these statistics for a living. I got

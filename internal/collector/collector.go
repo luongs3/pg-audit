@@ -34,6 +34,20 @@ type Section struct {
 	Skipped  string
 }
 
+// Count returns the number of findings with the given severity across all
+// sections.
+func (f *Findings) Count(sev Severity) int {
+	n := 0
+	for _, s := range f.Sections {
+		for _, x := range s.Findings {
+			if x.Severity == sev {
+				n++
+			}
+		}
+	}
+	return n
+}
+
 // RunAll connects to the DB and runs every check. Returns a Findings tree
 // that report.Markdown renders to a markdown document.
 func RunAll(ctx context.Context, dsn string) (*Findings, error) {

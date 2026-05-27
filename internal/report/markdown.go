@@ -43,13 +43,5 @@ func Markdown(f *collector.Findings) string {
 }
 
 func count(f *collector.Findings, sev collector.Severity) int {
-	n := 0
-	for _, s := range f.Sections {
-		for _, x := range s.Findings {
-			if x.Severity == sev {
-				n++
-			}
-		}
-	}
-	return n
+	return f.Count(sev)
 }
