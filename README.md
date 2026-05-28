@@ -105,7 +105,7 @@ Or download a release binary from the Releases page.
 
 Run against a 100k-row demo database with intentionally seeded issues:
 
-```markdown
+````markdown
 # Postgres audit: `pgaudit_demo`
 
 _Generated 2026-05-28T11:00:21Z by pg-audit. Postgres version: 16.2._
@@ -140,7 +140,7 @@ hits=16102198, disk reads=905296. OLTP workloads usually want >99%.
 
 ## Tables without a primary key
 ### [WARNING] `public.sessions` has no primary key
-```
+````
 
 Full example: [demo-report.md](launch/demo-report.md) (also available as [demo-report.json](launch/demo-report.json) for the same run).
 
