@@ -1,0 +1,353 @@
+{
+  "database": "pgaudit_demo",
+  "postgres_version": "16.2",
+  "summary": {
+    "critical": 0,
+    "warning": 7,
+    "info": 23,
+    "sections": 11
+  },
+  "sections": [
+    {
+      "name": "Slow queries (pg_stat_statements)",
+      "findings": [
+        {
+          "severity": "info",
+          "title": "#1: 19 ms mean, 1200 calls, 22281 ms total",
+          "detail": "```sql\nSELECT count(*) FROM orders WHERE amount_cents \u003e $1\n```\nTuning hints: check the plan with EXPLAIN (ANALYZE, BUFFERS); look for Seq Scan on large tables, missing indexes on the join/filter columns, or unbounded LIMIT.",
+          "evidence": {
+            "calls": 1200,
+            "mean_ms": 18.567408690833314,
+            "rows": 1200,
+            "total_ms": 22280.890428999992
+          }
+        },
+        {
+          "severity": "info",
+          "title": "#2: 24 ms mean, 50 calls, 1203 ms total",
+          "detail": "```sql\nSELECT count(*) FROM orders o JOIN users u ON u.id=o.user_id WHERE u.country = $1\n```\nTuning hints: check the plan with EXPLAIN (ANALYZE, BUFFERS); look for Seq Scan on large tables, missing indexes on the join/filter columns, or unbounded LIMIT.",
+          "evidence": {
+            "calls": 50,
+            "mean_ms": 24.063930760000005,
+            "rows": 50,
+            "total_ms": 1203.196538
+          }
+        },
+        {
+          "severity": "warning",
+          "title": "#3: 241 ms mean, 1 calls, 241 ms total",
+          "detail": "```sql\nANALYZE\n```\nTuning hints: check the plan with EXPLAIN (ANALYZE, BUFFERS); look for Seq Scan on large tables, missing indexes on the join/filter columns, or unbounded LIMIT.",
+          "evidence": {
+            "calls": 1,
+            "mean_ms": 241.496208,
+            "rows": 0,
+            "total_ms": 241.496208
+          }
+        },
+        {
+          "severity": "info",
+          "title": "#4: 1 ms mean, 200 calls, 136 ms total",
+          "detail": "```sql\nSELECT count(*) FROM users WHERE email = $1\n```\nTuning hints: check the plan with EXPLAIN (ANALYZE, BUFFERS); look for Seq Scan on large tables, missing indexes on the join/filter columns, or unbounded LIMIT.",
+          "evidence": {
+            "calls": 200,
+            "mean_ms": 0.6790845450000004,
+            "rows": 200,
+            "total_ms": 135.81690900000004
+          }
+        },
+        {
+          "severity": "info",
+          "title": "#5: 25 ms mean, 5 calls, 126 ms total",
+          "detail": "```sql\nSELECT count(*) FROM orders o\n      WHERE o.amount_cents \u003e $1\n        AND o.user_id IN (SELECT id FROM users WHERE email LIKE $2)\n```\nTuning hints: check the plan with EXPLAIN (ANALYZE, BUFFERS); look for Seq Scan on large tables, missing indexes on the join/filter columns, or unbounded LIMIT.",
+          "evidence": {
+            "calls": 5,
+            "mean_ms": 25.1835,
+            "rows": 5,
+            "total_ms": 125.91749999999999
+          }
+        },
+        {
+          "severity": "info",
+          "title": "#6: 3 ms mean, 20 calls, 63 ms total",
+          "detail": "```sql\nSELECT count(*) FROM audit_log WHERE action = $1\n```\nTuning hints: check the plan with EXPLAIN (ANALYZE, BUFFERS); look for Seq Scan on large tables, missing indexes on the join/filter columns, or unbounded LIMIT.",
+          "evidence": {
+            "calls": 20,
+            "mean_ms": 3.1479978500000003,
+            "rows": 20,
+            "total_ms": 62.959956999999996
+          }
+        },
+        {
+          "severity": "info",
+          "title": "#7: 9 ms mean, 1 calls, 9 ms total",
+          "detail": "```sql\nWITH constants AS (\n  SELECT current_setting($1)::numeric AS bs, $2 AS hdr, $3 AS ma\n), no_stats AS (\n  SELECT table_schema, table_name,\n    n_live_tup::numeric AS est_rows,\n    pg_table_size(relid)::\n```\nTuning hints: check the plan with EXPLAIN (ANALYZE, BUFFERS); look for Seq Scan on large tables, missing indexes on the join/filter columns, or unbounded LIMIT.",
+          "evidence": {
+            "calls": 1,
+            "mean_ms": 9.312083000000001,
+            "rows": 2,
+            "total_ms": 9.312083000000001
+          }
+        },
+        {
+          "severity": "info",
+          "title": "#8: 0 ms mean, 200 calls, 1 ms total",
+          "detail": "```sql\nSELECT display_name FROM users WHERE id = $1\n```\nTuning hints: check the plan with EXPLAIN (ANALYZE, BUFFERS); look for Seq Scan on large tables, missing indexes on the join/filter columns, or unbounded LIMIT.",
+          "evidence": {
+            "calls": 200,
+            "mean_ms": 0.0028524500000000016,
+            "rows": 200,
+            "total_ms": 0.5704899999999992
+          }
+        },
+        {
+          "severity": "info",
+          "title": "#9: 0 ms mean, 1 calls, 0 ms total",
+          "detail": "```sql\nSELECT name, setting, unit\n\t\tFROM pg_settings\n\t\tWHERE name IN (\n\t\t  $1,$2,$3,$4,\n\t\t  $5,$6,$7,\n\t\t  $8,$9,$10\n\t\t)\n```\nTuning hints: check the plan with EXPLAIN (ANALYZE, BUFFERS); look for Seq Scan on large tables, missing indexes on the join/filter columns, or unbounded LIMIT.",
+          "evidence": {
+            "calls": 1,
+            "mean_ms": 0.373126,
+            "rows": 10,
+            "total_ms": 0.373126
+          }
+        },
+        {
+          "severity": "info",
+          "title": "#10: 0 ms mean, 1 calls, 0 ms total",
+          "detail": "```sql\nSELECT schemaname, relname, seq_scan, idx_scan, n_live_tup,\n           pg_relation_size(relid), pg_size_pretty(pg_relation_size(relid))\n    FROM pg_stat_user_tables ORDER BY seq_scan DESC\n```\nTuning hints: check the plan with EXPLAIN (ANALYZE, BUFFERS); look for Seq Scan on large tables, missing indexes on the join/filter columns, or unbounded LIMIT.",
+          "evidence": {
+            "calls": 1,
+            "mean_ms": 0.334626,
+            "rows": 5,
+            "total_ms": 0.334626
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unused indexes",
+      "findings": [
+        {
+          "severity": "info",
+          "title": "`public.orders.idx_orders_created_unused` — 13 MB, 0 scans",
+          "detail": "Index has never been used since stats were last reset. Verify uptime with `SELECT stats_reset FROM pg_stat_database WHERE datname = current_database()` before dropping. Safe drop: `DROP INDEX CONCURRENTLY public.idx_orders_created_unused;`",
+          "evidence": {
+            "scans": 0,
+            "size_bytes": 13500416
+          }
+        },
+        {
+          "severity": "info",
+          "title": "`public.orders.idx_orders_notes_unused` — 4720 kB, 0 scans",
+          "detail": "Index has never been used since stats were last reset. Verify uptime with `SELECT stats_reset FROM pg_stat_database WHERE datname = current_database()` before dropping. Safe drop: `DROP INDEX CONCURRENTLY public.idx_orders_notes_unused;`",
+          "evidence": {
+            "scans": 0,
+            "size_bytes": 4833280
+          }
+        },
+        {
+          "severity": "info",
+          "title": "`public.orders.idx_orders_status_unused` — 4112 kB, 0 scans",
+          "detail": "Index has never been used since stats were last reset. Verify uptime with `SELECT stats_reset FROM pg_stat_database WHERE datname = current_database()` before dropping. Safe drop: `DROP INDEX CONCURRENTLY public.idx_orders_status_unused;`",
+          "evidence": {
+            "scans": 0,
+            "size_bytes": 4210688
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bloated tables",
+      "findings": [
+        {
+          "severity": "warning",
+          "title": "`public.audit_log` — 50.8% bloat (~6776 kB wasted on 13 MB table)",
+          "detail": "Run `VACUUM (VERBOSE, ANALYZE) public.audit_log;` and review autovacuum settings (`autovacuum_vacuum_scale_factor`). If bloat persists, schedule `pg_repack` during a low-traffic window — it rewrites the table without an exclusive lock.",
+          "evidence": {
+            "bloat_bytes": 6938624,
+            "bloat_pct": 50.8
+          }
+        }
+      ]
+    },
+    {
+      "name": "Missing-index candidates (seq vs idx scans)",
+      "findings": [
+        {
+          "severity": "warning",
+          "title": "`public.orders` — 3765 seq scans (∞ vs idx), 102 MB table",
+          "detail": "Identify the hot query with `SELECT query FROM pg_stat_statements WHERE query ILIKE '%orders%' ORDER BY total_exec_time DESC LIMIT 5;`, then add an index on the columns in its WHERE/JOIN. Verify with `EXPLAIN ANALYZE` before and after.",
+          "evidence": {
+            "idx_scan": 0,
+            "seq_scan": 3765,
+            "size_bytes": 106823680
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lock-wait hotspots",
+      "findings": [
+        {
+          "severity": "info",
+          "title": "No blocking or stuck transactions right now",
+          "detail": "Snapshot only — re-run during peak load or an incident."
+        }
+      ]
+    },
+    {
+      "name": "Config smells",
+      "findings": [
+        {
+          "severity": "info",
+          "title": "work_mem at default (4 MB)",
+          "detail": "Many analytical queries spill to disk at this level. Bump per-session (`SET LOCAL work_mem = '64MB';`) for heavy reports, or globally if RAM allows. Watch out: applied per sort/hash node, not per query."
+        }
+      ]
+    },
+    {
+      "name": "Cache hit ratio",
+      "findings": [
+        {
+          "severity": "warning",
+          "title": "Database cache hit ratio: 94.68%",
+          "detail": "hits=16118585, disk reads=905431. OLTP workloads usually want \u003e99%. If you just restarted, give it time to warm up. Persistent low ratio → increase shared_buffers or add RAM.",
+          "evidence": {
+            "hit": 16118585,
+            "ratio_pct": 94.68144884262327,
+            "read": 905431
+          }
+        },
+        {
+          "severity": "warning",
+          "title": "`public.orders` — 94.5% hit (901096 disk reads)",
+          "detail": "Hot table reaching for disk. Either it's the largest table in the system (expected) or it lacks an index pushing the planner into full reads.",
+          "evidence": {
+            "disk_reads": 901096,
+            "hit_pct": 94.5
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replication lag",
+      "findings": [
+        {
+          "severity": "info",
+          "title": "No replicas connected",
+          "detail": "Either there are no replicas, or none were connected at the moment of the audit. Not necessarily a problem."
+        }
+      ]
+    },
+    {
+      "name": "Largest relations",
+      "findings": [
+        {
+          "severity": "info",
+          "title": "`public.orders` — 136.3 MB total",
+          "detail": "heap 101.9 MB, indexes 34.4 MB. Largest relations are where bloat and cache misses cost the most — cross-reference with the bloat and unused-index sections.",
+          "evidence": {
+            "heap_bytes": 106823680,
+            "index_bytes": 36044800,
+            "total_bytes": 142925824
+          }
+        },
+        {
+          "severity": "info",
+          "title": "`public.audit_log` — 14.1 MB total",
+          "detail": "heap 13.0 MB, indexes 1.1 MB. Largest relations are where bloat and cache misses cost the most — cross-reference with the bloat and unused-index sections.",
+          "evidence": {
+            "heap_bytes": 13656064,
+            "index_bytes": 1138688,
+            "total_bytes": 14827520
+          }
+        },
+        {
+          "severity": "info",
+          "title": "`public.users` — 1.2 MB total",
+          "detail": "heap 824.0 KB, indexes 328.0 KB. Largest relations are where bloat and cache misses cost the most — cross-reference with the bloat and unused-index sections.",
+          "evidence": {
+            "heap_bytes": 843776,
+            "index_bytes": 335872,
+            "total_bytes": 1212416
+          }
+        },
+        {
+          "severity": "info",
+          "title": "`public.temp_data` — 360.0 KB total",
+          "detail": "heap 328.0 KB, indexes 0 B. Largest relations are where bloat and cache misses cost the most — cross-reference with the bloat and unused-index sections.",
+          "evidence": {
+            "heap_bytes": 335872,
+            "index_bytes": 0,
+            "total_bytes": 368640
+          }
+        },
+        {
+          "severity": "info",
+          "title": "`public.sessions` — 280.0 KB total",
+          "detail": "heap 248.0 KB, indexes 0 B. Largest relations are where bloat and cache misses cost the most — cross-reference with the bloat and unused-index sections.",
+          "evidence": {
+            "heap_bytes": 253952,
+            "index_bytes": 0,
+            "total_bytes": 286720
+          }
+        }
+      ]
+    },
+    {
+      "name": "Connection usage",
+      "findings": [
+        {
+          "severity": "info",
+          "title": "7 / 100 connections in use (7%)",
+          "detail": "Approaching max_connections risks hard \"too many clients\" failures. If usage is high with many idle connections, put a pooler (PgBouncer) in front or lower per-app pool sizes rather than raising max_connections (each backend costs memory).",
+          "evidence": {
+            "max_connections": 100,
+            "used": 7,
+            "used_pct": 7.000000000000001
+          }
+        },
+        {
+          "severity": "info",
+          "title": "1 connection(s) in state \"active\"",
+          "detail": "",
+          "evidence": {
+            "count": 1,
+            "state": "active"
+          }
+        },
+        {
+          "severity": "info",
+          "title": "1 connection(s) in state \"idle\"",
+          "detail": "",
+          "evidence": {
+            "count": 1,
+            "state": "idle"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tables without a primary key",
+      "findings": [
+        {
+          "severity": "warning",
+          "title": "`public.sessions` has no primary key",
+          "detail": "Tables without a primary key can't be replicated by logical replication (without REPLICA IDENTITY FULL), are awkward for ORMs and row-level updates, and make duplicate rows hard to detect. Add a primary key or a UNIQUE NOT NULL identity column.",
+          "evidence": {
+            "schema": "public",
+            "table": "sessions"
+          }
+        },
+        {
+          "severity": "warning",
+          "title": "`public.temp_data` has no primary key",
+          "detail": "Tables without a primary key can't be replicated by logical replication (without REPLICA IDENTITY FULL), are awkward for ORMs and row-level updates, and make duplicate rows hard to detect. Add a primary key or a UNIQUE NOT NULL identity column.",
+          "evidence": {
+            "schema": "public",
+            "table": "temp_data"
+          }
+        }
+      ]
+    }
+  ]
+}
